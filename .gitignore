@@ -29,3 +29,6 @@ logs
 
 # No one wants tmp stuff
 tmp
+
+# NativeScript ignores
+platforms

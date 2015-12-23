@@ -1,0 +1,23 @@
+<Page loaded="loaded">
+  <Page.actionBar>
+    <ActionBar title="Reddit" />
+  </Page.actionBar>
+  <StackLayout>
+    <!-- <Label id="page&#45;title" text="Reddit" /> -->
+    <ListView items="{{ posts }}" id="posts">
+      <ListView.itemTemplate>
+        <StackLayout>
+          <StackLayout orientation="horizontal">
+            <Image class="image" src="{{ data.thumbnail }}" />
+            <Label class="title" text="{{ data.title }}" horizontalAlignment="left" verticalAlignment="center" textWrap="true" />
+          </StackLayout>
+          <StackLayout orientation="horizontal">
+            <Label class="author" text="{{ data.author }} " horizontalAlignment="center" verticalAlignment="center" />
+            <Label class="created" text="{{ data.created }} " horizontalAlignment="center" verticalAlignment="center" />
+            <Label class="subreddit" text="{{ data.subreddit }} " horizontalAlignment="center" verticalAlignment="center" />
+          </StackLayout>
+        </StackLayout>
+      </ListView.itemTemplate>
+    </ListView>
+</StackLayout>
+</Page>
