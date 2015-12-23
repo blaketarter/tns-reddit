@@ -64,7 +64,7 @@ function buildListView(pageView, posts) {
   pageView.refresh();
 }
 
-function buildStackLayout(dir, children) {
+function buildStackLayout(dir, children, className) {
   var stackLayout = new stackLayoutModule.StackLayout();
   stackLayout.orientation = orientation[dir];
 
@@ -74,18 +74,41 @@ function buildStackLayout(dir, children) {
     }
   }
 
+  if (className) {
+    stackLayout.className = className;
+  }
+
   return stackLayout;
 }
 
 function buildListItem(post) {
-  return buildStackLayout('vertical', [
-    buildTitlePart(post),
-    buildStackLayout('horizontal', [
-      buildLabel(post.author, 'author'),
-      buildLabel(post.created, 'created'),
-      buildLabel(post.subreddit, 'subreddit')
-    ])
-  ]);
+  /*
+   * return buildStackLayout('vertical', [
+   *   buildTitlePart(post),
+   *   buildStackLayout('horizontal', [
+   *     buildLabel(post.author, 'author'),
+   *     buildLabel(post.created, 'created'),
+   *     buildLabel(post.subreddit, 'subreddit')
+   *   ], 'info')
+   * ], 'post');
+   */
+  let listItem;
+
+  switch (post.post_hint) {
+    case 'link':
+      listItem = buildLinkPost(post);
+      break;
+    case 'self':
+      listItem = buildSelfPost(post);
+      break;
+    case 'image':
+      listItem = buildImagePost(post);
+      break;
+    default:
+      listItem = buildLinkPost(post);
+  }
+
+  return listItem;
 }
 
 function buildCachedImage(src, className) {
@@ -109,7 +132,7 @@ function buildTitlePart(post) {
 
   titlePart.push(buildLabel(post.title, 'title'));
 
-  return buildStackLayout('horizontal', titlePart);
+  return buildStackLayout('horizontal', titlePart, 'top');
 }
 
 function buildLabel(text, className) {
@@ -121,4 +144,40 @@ function buildLabel(text, className) {
   }
 
   return label;
+}
+
+function buildBorder(children, className) {
+
+}
+
+function buildSelfPost(post) {
+  return buildStackLayout('vertical', [
+    buildStackLayout('vertical', [
+      buildLabel(post.title, 'title')
+    ], 'title-stack'),
+    buildStackLayout('horizontal', [
+      buildLabel(post.author, 'author'),
+      buildLabel(post.created, 'created'),
+      buildLabel(post.subreddit, 'subreddit')
+    ], 'info')
+  ], 'post link-post');
+}
+
+function buildLinkPost(post) {
+  return buildStackLayout('vertical', [
+    buildStackLayout('vertical', [
+      buildLabel(post.title, 'title')
+    ], 'title-stack'),
+    buildStackLayout('horizontal', buildTitlePart(post), 'link-stack'),
+    buildStackLayout('horizontal', [
+      buildLabel(post.author, 'author'),
+      buildLabel(post.created, 'created'),
+      buildLabel(post.subreddit, 'subreddit')
+    ], 'info')
+  ], 'post link-post');
+}
+
+function buildImagePost(post) {
+  return buildStackLayout('vertical', [
+  ], 'post image-post');
 }

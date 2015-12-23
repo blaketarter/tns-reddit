@@ -1,34 +1,16 @@
-.image {
-  width: 50%;
-  margin-left: 12px;
-  margin-bottom: 12px;
-  margin-top: 12px;
+.list-layout {
+  width: 100%;
 }
 
-.hide {
-  display: none;
-}
-
-.image.hide {
-  width: 0;
-  margin: 0;
-  padding: 0;
-  background-color: blue;
+.post {
+  padding: 7px 15px;
 }
 
 .title {
-  margin: 12px 0;
-  padding: 0 12px;
-  font-size: 18px;
+  font-size: 12px;
+  margin-bottom: 15px;
 }
 
-.subreddit, .created, .author {
-  margin-bottom: 6px;
-  padding: 0 6px;
-  font-size: 8px;
+.info {
+  font-size: 6px;
 }
-
-.author {
-  padding-left: 12px;
-}
-
