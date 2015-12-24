@@ -12,6 +12,7 @@ var listViewModule = require("ui/list-view");
 var labelModule = require("ui/label");
 var stackLayoutModule = require("ui/layouts/stack-layout");
 var imageModule = require("ui/image");
+var borderModule = require("ui/border");
 
 var enums = require("ui/enums");
 var orientation = enums.Orientation;
@@ -167,8 +168,18 @@ function buildLabel(text, className, textWrap) {
   return label;
 }
 
-function buildBorder(children, className) {
+function buildBorder(child, width, className) {
+  let border = new borderModule.Border();
+  
+  border.width = width;
 
+  if (className) {
+    border.className = className;
+  }
+
+  border.content = child;
+
+  return border;
 }
 
 function buildSelfPost(post) {
