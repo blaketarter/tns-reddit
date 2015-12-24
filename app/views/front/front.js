@@ -12,16 +12,21 @@ var listViewModule = require("ui/list-view");
 var labelModule = require("ui/label");
 var stackLayoutModule = require("ui/layouts/stack-layout");
 var imageModule = require("ui/image");
-var borderModule = require("ui/border");
+// var borderModule = require("ui/border");
+var buttonModule = require("ui/button");
 
 var enums = require("ui/enums");
+var utilityModule = require("utils/utils");
 var orientation = enums.Orientation;
 
 var frontPage = 'https://www.reddit.com/.json';
 var page;
 var posts = [];
+var lastPageId = '';
+var loadMore;
+var loading = false;
 
-var testData = require('../../data/front');
+// var testData = require('../../data/front');
 
 var pageData = new observable.Observable({
     posts: new observableArray.ObservableArray([
@@ -32,25 +37,25 @@ exports.loaded = function(args) {
     page = args.object;
     page.bindingContext = pageData;
 
-    // http.fetch(frontPage)
-      // .then(function(response) {
-        // return response.json();
-      // })
-      // .then(function(data) {
-        testData.data.children.map(function(post) {
-          post.data.created = formatDate(post.data.created_utc);
-          posts.push(post.data);
-        });
-
-        console.log(posts);
-
+    http.fetch(frontPage)
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        lastPageId = data.data.after;
         pageData.posts = new observableArray.ObservableArray(posts);
 
+        buildPostData(data);
         buildListView(view.getViewById(page, 'list-layout'), pageData.posts);
-
-        // view.getViewById(page, 'list-layout').refresh();
-      // });
+      });
 };
+
+function buildPostData(raw) {
+  raw.data.children.map(function(post) {
+    post.data.created = formatDate(post.data.created_utc);
+    pageData.posts.push(post.data);
+  });
+}
 
 function formatDate(rawDate) {
   return moment(rawDate * 1000).fromNow();
@@ -59,18 +64,35 @@ function formatDate(rawDate) {
 function buildListView(pageView, posts) {
   var listView = new listViewModule.ListView();
   listView.items = posts;
+  
   listView.on(listViewModule.ListView.itemLoadingEvent, function(args) {
-    // console.log('load ' + args.index);
-    // console.log('out of' + pageData.posts.length);
-    // if (!args.view) {
-      // console.log(posts.getItem(args.index).title);
-      // console.log('first load ' + args.index);
-      args.view = buildListItem(posts.getItem(args.index));
-    // }
+    args.view = buildListItem(posts.getItem(args.index));
+  });
+
+  listView.on(listViewModule.ListView.itemTapEvent, function(args) {
+    let post = posts.getItem(args.index);
+
+    if (post.url && post.url.length) {
+      utilityModule.openUrl(post.url);
+    }
+  });
+
+  listView.on(listViewModule.ListView.loadMoreItemsEvent, function(args) {
+    if (!loading) {
+      loading = true;
+      http.fetch(frontPage + '?count=25&after=' + lastPageId)
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(data) {
+          lastPageId = data.data.after;
+          buildPostData(data);
+          loading = false;
+        });
+    }
   });
 
   pageView.addChild(listView);
-  // pageView.refresh();
 }
 
 function buildStackLayout(dir, children, className) {
@@ -168,19 +190,21 @@ function buildLabel(text, className, textWrap) {
   return label;
 }
 
-function buildBorder(child, width, className) {
-  let border = new borderModule.Border();
-  
-  border.width = width;
-
-  if (className) {
-    border.className = className;
-  }
-
-  border.content = child;
-
-  return border;
-}
+/*
+ * function buildBorder(child, width, className) {
+ *   let border = new borderModule.Border();
+ *   
+ *   border.width = width;
+ * 
+ *   if (className) {
+ *     border.className = className;
+ *   }
+ * 
+ *   border.content = child;
+ * 
+ *   return border;
+ * }
+ */
 
 function buildSelfPost(post) {
   return buildStackLayout('vertical', [
@@ -227,3 +251,6 @@ function buildImagePost(post) {
     ], 'info')
   ], 'post image-post');
 }
+
+function addLoadMore() {}
+function removeLoadMore() {}
