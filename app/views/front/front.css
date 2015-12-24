@@ -3,14 +3,36 @@
 }
 
 .post {
-  padding: 7px 15px;
+  padding: 7 15;
 }
 
 .title {
-  font-size: 12px;
-  margin-bottom: 15px;
+  font-size: 18;
+  margin-bottom: 7;
 }
 
 .info {
-  font-size: 6px;
+  font-size: 12;
+  color: #666666;
+}
+
+.url {
+  font-size: 14;
+  margin-bottom: 7;
+  color: #f44336;
+}
+
+.domain {
+  font-size: 14;
+  margin-bottom: 3;
+  color: #666666;
+}
+
+.author, .created, .subreddit, .score {
+  padding-right: 7;
+  margin-bottom: 7;
+}
+
+.score {
+  color: #e57373;
 }

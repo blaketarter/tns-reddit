@@ -16,8 +16,11 @@ var imageModule = require("ui/image");
 var enums = require("ui/enums");
 var orientation = enums.Orientation;
 
+var frontPage = 'https://www.reddit.com/.json';
 var page;
 var posts = [];
+
+var testData = require('../../data/front');
 
 var pageData = new observable.Observable({
     posts: new observableArray.ObservableArray([
@@ -28,12 +31,12 @@ exports.loaded = function(args) {
     page = args.object;
     page.bindingContext = pageData;
 
-    http.fetch('https://www.reddit.com/.json')
-      .then(function(response) {
-        return response.json();
-      })
-      .then(function(data) {
-        data.data.children.map(function(post) {
+    // http.fetch(frontPage)
+      // .then(function(response) {
+        // return response.json();
+      // })
+      // .then(function(data) {
+        testData.data.children.map(function(post) {
           post.data.created = formatDate(post.data.created_utc);
           posts.push(post.data);
         });
@@ -43,7 +46,9 @@ exports.loaded = function(args) {
         pageData.posts = new observableArray.ObservableArray(posts);
 
         buildListView(view.getViewById(page, 'list-layout'), pageData.posts);
-      });
+
+        // view.getViewById(page, 'list-layout').refresh();
+      // });
 };
 
 function formatDate(rawDate) {
@@ -54,14 +59,17 @@ function buildListView(pageView, posts) {
   var listView = new listViewModule.ListView();
   listView.items = posts;
   listView.on(listViewModule.ListView.itemLoadingEvent, function(args) {
-    if (!args.view) {
-      let post = posts.getItem(args.index);
-      args.view = buildListItem(post);
-    }
+    // console.log('load ' + args.index);
+    // console.log('out of' + pageData.posts.length);
+    // if (!args.view) {
+      // console.log(posts.getItem(args.index).title);
+      // console.log('first load ' + args.index);
+      args.view = buildListItem(posts.getItem(args.index));
+    // }
   });
 
   pageView.addChild(listView);
-  pageView.refresh();
+  // pageView.refresh();
 }
 
 function buildStackLayout(dir, children, className) {
@@ -82,16 +90,6 @@ function buildStackLayout(dir, children, className) {
 }
 
 function buildListItem(post) {
-  /*
-   * return buildStackLayout('vertical', [
-   *   buildTitlePart(post),
-   *   buildStackLayout('horizontal', [
-   *     buildLabel(post.author, 'author'),
-   *     buildLabel(post.created, 'created'),
-   *     buildLabel(post.subreddit, 'subreddit')
-   *   ], 'info')
-   * ], 'post');
-   */
   let listItem;
 
   switch (post.post_hint) {
@@ -124,23 +122,46 @@ function buildCachedImage(src, className) {
 function buildTitlePart(post) {
   var titlePart = [];
 
-  if (post.thumbnail && post.thumbnail.length) {
-    titlePart.push(buildCachedImage(post.thumbnail, 'image'));
-  } else {
-    console.log('no image');
-  }
+  /*
+   * if (post.thumbnail && post.thumbnail.length) {
+   *   titlePart.push(buildCachedImage(post.thumbnail, 'image'));
+   * } else {
+   *   console.log('no image');
+   * }
+   */
 
   titlePart.push(buildLabel(post.title, 'title'));
 
   return buildStackLayout('horizontal', titlePart, 'top');
 }
 
-function buildLabel(text, className) {
+function buildLinkPart(post) {
+  var linkPart = [];
+
+  /*
+   * if (post.thumbnail && post.thumbnail.length) {
+   *   linkPart.push(buildCachedImage(post.thumbnail, 'image'));
+   * } else {
+   *   console.log('no image');
+   * }
+   */
+  
+  linkPart.push(buildLabel(post.domain, 'domain'));
+  linkPart.push(buildLabel(post.url, 'url'));
+
+  return linkPart;
+}
+
+function buildLabel(text, className, textWrap) {
   let label = new labelModule.Label();
   label.text = text;
 
   if (className) {
     label.className = className;
+  }
+
+  if (textWrap) {
+    label.textWrap = true;
   }
 
   return label;
@@ -153,9 +174,10 @@ function buildBorder(children, className) {
 function buildSelfPost(post) {
   return buildStackLayout('vertical', [
     buildStackLayout('vertical', [
-      buildLabel(post.title, 'title')
+      buildLabel(post.title, 'title', true)
     ], 'title-stack'),
     buildStackLayout('horizontal', [
+      buildLabel(post.score, 'score'),
       buildLabel(post.author, 'author'),
       buildLabel(post.created, 'created'),
       buildLabel(post.subreddit, 'subreddit')
@@ -166,10 +188,11 @@ function buildSelfPost(post) {
 function buildLinkPost(post) {
   return buildStackLayout('vertical', [
     buildStackLayout('vertical', [
-      buildLabel(post.title, 'title')
+      buildLabel(post.title, 'title', true)
     ], 'title-stack'),
-    buildStackLayout('horizontal', buildTitlePart(post), 'link-stack'),
+    buildStackLayout('vertical', buildLinkPart(post), 'link-stack'),
     buildStackLayout('horizontal', [
+      buildLabel(post.score, 'score'),
       buildLabel(post.author, 'author'),
       buildLabel(post.created, 'created'),
       buildLabel(post.subreddit, 'subreddit')
@@ -179,5 +202,17 @@ function buildLinkPost(post) {
 
 function buildImagePost(post) {
   return buildStackLayout('vertical', [
+    buildStackLayout('vertical', [
+      buildLabel(post.title, 'title', true)
+    ], 'title-stack'),
+    buildStackLayout('horizontal', [
+      buildCachedImage(post.thumbnail, 'image')
+    ], 'image-stack'),
+    buildStackLayout('horizontal', [
+      buildLabel(post.score, 'score'),
+      buildLabel(post.author, 'author'),
+      buildLabel(post.created, 'created'),
+      buildLabel(post.subreddit, 'subreddit')
+    ], 'info')
   ], 'post image-post');
 }
